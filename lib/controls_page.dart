@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -11,8 +10,7 @@ class ControlsPage extends StatefulWidget {
   });
 
   @override
-  State<ControlsPage> createState() =>
-      _ControlsPageState();
+  State<ControlsPage> createState() => _ControlsPageState();
 }
 
 class _ControlsPageState extends State<ControlsPage> {
@@ -43,8 +41,7 @@ class _ControlsPageState extends State<ControlsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '$device command sent: '
-                '${value ? 'ON' : 'OFF'}',
+            '$device command sent: ${value ? 'ON' : 'OFF'}',
           ),
         ),
       );
@@ -74,9 +71,16 @@ class _ControlsPageState extends State<ControlsPage> {
     return Card(
       color: const Color(0xFF1E293B),
       margin: const EdgeInsets.only(bottom: 15),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
       child: Column(
         children: [
           SwitchListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 6,
+            ),
             secondary: Icon(
               icon,
               size: 32,
@@ -86,10 +90,14 @@ class _ControlsPageState extends State<ControlsPage> {
               title,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
+                fontSize: 17,
               ),
             ),
             subtitle: Text(
               'Requested: ${command ? 'ON' : 'OFF'}',
+              style: const TextStyle(
+                color: Colors.white70,
+              ),
             ),
             value: command,
             onChanged: sending
@@ -100,8 +108,7 @@ class _ControlsPageState extends State<ControlsPage> {
                     .showSnackBar(
                   const SnackBar(
                     content: Text(
-                      'Cannot turn OFF alarm '
-                          'during DANGER status.',
+                      'Cannot turn OFF alarm during DANGER status.',
                     ),
                   ),
                 );
@@ -111,22 +118,95 @@ class _ControlsPageState extends State<ControlsPage> {
               sendCommand(device, value);
             },
           ),
-
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              16, 0, 16, 14,
-            ),
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 'ESP32 reported: ${actual ? 'ON' : 'OFF'}',
                 style: const TextStyle(
                   color: Colors.white60,
+                  fontSize: 13,
                 ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget automaticSafetyCard(String status) {
+    Color statusColor;
+
+    if (status == 'SAFE') {
+      statusColor = Colors.greenAccent;
+    } else if (status == 'DANGER') {
+      statusColor = Colors.redAccent;
+    } else {
+      statusColor = Colors.orangeAccent;
+    }
+
+    return Card(
+      color: const Color(0xFF1E293B),
+      margin: const EdgeInsets.only(top: 10),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 20,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                Icons.security,
+                color: statusColor,
+                size: 30,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Automatic Safety Mode',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Current Status',
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    status,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -150,9 +230,7 @@ class _ControlsPageState extends State<ControlsPage> {
           );
         }
 
-        final data = asMap(
-          snapshot.data!.snapshot.value,
-        );
+        final data = asMap(snapshot.data!.snapshot.value);
 
         final commands = asMap(data['Commands']);
         final actuators = asMap(data['Actuators']);
@@ -174,18 +252,14 @@ class _ControlsPageState extends State<ControlsPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 5),
-
             const Text(
               'Control laboratory devices through Firebase',
               style: TextStyle(
                 color: Colors.white60,
               ),
             ),
-
             const SizedBox(height: 22),
-
             controlCard(
               title: 'Warning LED',
               device: 'led',
@@ -194,7 +268,6 @@ class _ControlsPageState extends State<ControlsPage> {
               actual: actuators['led'] == true,
               danger: danger,
             ),
-
             controlCard(
               title: 'Buzzer Alarm',
               device: 'buzzer',
@@ -203,51 +276,7 @@ class _ControlsPageState extends State<ControlsPage> {
               actual: actuators['buzzer'] == true,
               danger: danger,
             ),
-
-            const SizedBox(height: 15),
-
-            Card(
-              color: const Color(0xFF1E293B),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(
-                          Icons.security,
-                          color: Colors.orangeAccent,
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          'Automatic Safety Mode',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    Text('Current Status: $status'),
-
-                    const SizedBox(height: 10),
-
-                    const Text(
-                      'During DANGER, the ESP32 must '
-                          'keep the LED and buzzer activated '
-                          'even if a manual OFF command is sent.',
-                      style: TextStyle(
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            automaticSafetyCard(status),
           ],
         );
       },

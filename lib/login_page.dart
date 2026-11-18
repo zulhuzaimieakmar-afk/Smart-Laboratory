@@ -17,11 +17,12 @@ class _LoginPageState extends State<LoginPage> {
   bool hidePassword = true;
   String errorMessage = '';
 
+  // FIREBASE LOGIN
   Future<void> login() async {
     if (emailController.text.trim().isEmpty ||
         passwordController.text.isEmpty) {
       setState(() {
-        errorMessage = 'Please enter email and password.';
+        errorMessage = 'Please enter your email and password.';
       });
       return;
     }
@@ -39,18 +40,48 @@ class _LoginPageState extends State<LoginPage> {
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() {
-          errorMessage = e.message ?? 'Login failed.';
+          switch (e.code) {
+            case 'invalid-credential':
+            case 'wrong-password':
+            case 'user-not-found':
+            case 'invalid-email':
+              errorMessage =
+              'Incorrect email or password. Please try again.';
+              break;
+
+            case 'too-many-requests':
+              errorMessage =
+              'Too many login attempts. Please try again later.';
+              break;
+
+            case 'network-request-failed':
+              errorMessage =
+              'Connection failed. Please check your internet.';
+              break;
+
+            case 'user-disabled':
+              errorMessage =
+              'This account has been disabled.';
+              break;
+
+            default:
+              errorMessage =
+              'Unable to sign in. Please try again.';
+          }
         });
       }
     } catch (_) {
       if (mounted) {
         setState(() {
-          errorMessage = 'Connection error. Try again.';
+          errorMessage =
+          'Something went wrong. Please try again.';
         });
       }
     } finally {
       if (mounted) {
-        setState(() => loading = false);
+        setState(() {
+          loading = false;
+        });
       }
     }
   }
@@ -75,6 +106,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               child: Column(
                 children: [
+                  // APP LOGO
                   const CircleAvatar(
                     radius: 48,
                     backgroundColor: Color(0xFF164E63),
@@ -87,6 +119,7 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 25),
 
+                  // APP TITLE
                   const Text(
                     'SMART LABORATORY',
                     textAlign: TextAlign.center,
@@ -107,9 +140,17 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 40),
 
+                  // EMAIL FIELD
                   TextField(
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
+                    onChanged: (_) {
+                      if (errorMessage.isNotEmpty) {
+                        setState(() {
+                          errorMessage = '';
+                        });
+                      }
+                    },
                     decoration: const InputDecoration(
                       labelText: 'Email Address',
                       prefixIcon: Icon(Icons.email_outlined),
@@ -119,9 +160,17 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 16),
 
+                  // PASSWORD FIELD
                   TextField(
                     controller: passwordController,
                     obscureText: hidePassword,
+                    onChanged: (_) {
+                      if (errorMessage.isNotEmpty) {
+                        setState(() {
+                          errorMessage = '';
+                        });
+                      }
+                    },
                     decoration: InputDecoration(
                       labelText: 'Password',
                       prefixIcon: const Icon(Icons.lock_outline),
@@ -144,20 +193,62 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
 
+                  // BEAUTIFUL ERROR MESSAGE
                   if (errorMessage.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 15),
-                      child: Text(
-                        errorMessage,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.redAccent,
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(top: 18),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withOpacity(0.10),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.redAccent.withOpacity(0.45),
                         ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Colors.redAccent,
+                            size: 25,
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Login Failed',
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 4),
+
+                                Text(
+                                  errorMessage,
+                                  style: const TextStyle(
+                                    color: Color(0xFFFFA0A0),
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
                   const SizedBox(height: 25),
 
+                  // LOGIN BUTTON
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -166,6 +257,9 @@ class _LoginPageState extends State<LoginPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.cyan,
                         foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                       ),
                       child: loading
                           ? const SizedBox(
@@ -173,12 +267,14 @@ class _LoginPageState extends State<LoginPage> {
                         width: 22,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
+                          color: Colors.black,
                         ),
                       )
                           : const Text(
                         'LOGIN',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
+                          fontSize: 15,
                         ),
                       ),
                     ),
@@ -186,6 +282,7 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 25),
 
+                  // FOOTER
                   const Text(
                     'Powered by Firebase',
                     style: TextStyle(

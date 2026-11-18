@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -49,9 +48,7 @@ class SensorsPage extends StatelessWidget {
                 size: 28,
               ),
             ),
-
             const SizedBox(width: 15),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,9 +60,7 @@ class SensorsPage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 5),
-
                   Text(
                     description,
                     style: const TextStyle(
@@ -76,9 +71,7 @@ class SensorsPage extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(width: 8),
-
             Text(
               value,
               style: const TextStyle(
@@ -111,9 +104,7 @@ class SensorsPage extends StatelessWidget {
           );
         }
 
-        final sensors = asMap(
-          snapshot.data!.snapshot.value,
-        );
+        final sensors = asMap(snapshot.data!.snapshot.value);
 
         if (sensors.isEmpty) {
           return const Center(
@@ -131,18 +122,14 @@ class SensorsPage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 5),
-
             const Text(
               'Monitor laboratory conditions in real time',
               style: TextStyle(
                 color: Colors.white60,
               ),
             ),
-
             const SizedBox(height: 25),
-
             sensorTile(
               'Temperature',
               reading(sensors['temperature'], ' °C'),
@@ -150,7 +137,6 @@ class SensorsPage extends StatelessWidget {
               Icons.thermostat,
               Colors.orangeAccent,
             ),
-
             sensorTile(
               'Humidity',
               reading(sensors['humidity'], ' %'),
@@ -158,7 +144,6 @@ class SensorsPage extends StatelessWidget {
               Icons.water_drop,
               Colors.lightBlueAccent,
             ),
-
             sensorTile(
               'Gas Level',
               reading(sensors['gas'], ''),
@@ -166,63 +151,12 @@ class SensorsPage extends StatelessWidget {
               Icons.air,
               Colors.greenAccent,
             ),
-
             sensorTile(
               'Light Level',
               reading(sensors['light'], ''),
               'LDR Light Sensor',
               Icons.wb_sunny,
               Colors.amberAccent,
-            ),
-
-            const SizedBox(height: 15),
-
-            const Card(
-              color: Color(0xFF1E293B),
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sensor Information',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    SizedBox(height: 10),
-
-                    Text(
-                      'DHT11: Measures temperature and humidity.',
-                    ),
-
-                    SizedBox(height: 6),
-
-                    Text(
-                      'MQ-2: Detects changes in gas or smoke level.',
-                    ),
-
-                    SizedBox(height: 6),
-
-                    Text(
-                      'LDR: Measures relative light level.',
-                    ),
-
-                    SizedBox(height: 10),
-
-                    Text(
-                      'Gas and light readings use raw ADC '
-                          'values from 0 to 4095, not ppm or lux.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white60,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ],
         );
