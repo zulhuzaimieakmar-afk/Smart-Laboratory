@@ -2,13 +2,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 
-class HistoryPage extends StatelessWidget {
+class HistoryPage extends StatefulWidget {
   final DatabaseReference database;
 
   const HistoryPage({
     super.key,
     required this.database,
   });
+
+  @override
+  State<HistoryPage> createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+  bool showAll = false;
 
   Map<String, dynamic> asMap(Object? value) {
     if (value is Map) {
@@ -20,7 +27,9 @@ class HistoryPage extends StatelessWidget {
   }
 
   double number(Object? value) {
-    if (value is num) return value.toDouble();
+    if (value is num) {
+      return value.toDouble();
+    }
     return double.tryParse(value.toString()) ?? 0;
   }
 
@@ -48,6 +57,7 @@ class HistoryPage extends StatelessWidget {
     return showValue(data['time'] ?? value);
   }
 
+  // TEMPERATURE HISTORY CHART
   Widget temperatureChart(
       List<Map<String, dynamic>> records,
       ) {
@@ -61,7 +71,10 @@ class HistoryPage extends StatelessWidget {
 
     for (final record in recent) {
       final temp = number(record['temperature']);
-      if (temp > maxValue) maxValue = temp;
+
+      if (temp > maxValue) {
+        maxValue = temp;
+      }
     }
 
     return Card(
@@ -152,9 +165,8 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  Widget historyCard(
-      Map<String, dynamic> data,
-      ) {
+  // ORIGINAL HISTORY READING FORMAT
+  Widget historyCard(Map<String, dynamic> data) {
     return Card(
       color: const Color(0xFF1E293B),
       margin: const EdgeInsets.only(bottom: 10),
@@ -170,7 +182,9 @@ class HistoryPage extends StatelessWidget {
                   color: Colors.cyan,
                   size: 20,
                 ),
+
                 const SizedBox(width: 8),
+
                 Text(
                   showTime(data),
                   style: const TextStyle(
@@ -217,7 +231,7 @@ class HistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DatabaseEvent>(
-      stream: database.child('History').onValue,
+      stream: widget.database.child('History').onValue,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(
@@ -242,15 +256,16 @@ class HistoryPage extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.all(25),
               child: Column(
-                mainAxisAlignment:
-                MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.history,
                     size: 60,
                     color: Colors.cyan,
                   ),
+
                   SizedBox(height: 15),
+
                   Text(
                     'No History Yet',
                     style: TextStyle(
@@ -258,7 +273,9 @@ class HistoryPage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+
                   SizedBox(height: 10),
+
                   Text(
                     'Historical sensor readings will '
                         'appear here after ESP32 saves '
@@ -274,17 +291,15 @@ class HistoryPage extends StatelessWidget {
           );
         }
 
+        // SORT NEWEST FIRST
         final entries = history.entries.toList();
 
-        // Sort by timestamp if available.
         entries.sort((a, b) {
           final aData = asMap(a.value);
           final bData = asMap(b.value);
 
-          final aTime =
-          number(aData['timestamp']);
-          final bTime =
-          number(bData['timestamp']);
+          final aTime = number(aData['timestamp']);
+          final bTime = number(bData['timestamp']);
 
           if (aTime != bTime) {
             return bTime.compareTo(aTime);
@@ -293,10 +308,18 @@ class HistoryPage extends StatelessWidget {
           return b.key.compareTo(a.key);
         });
 
-        final records = entries
-            .take(30)
+        // ALL DATABASE RECORDS
+        final allRecords = entries
             .map((entry) => asMap(entry.value))
             .toList();
+
+        // SHOW ONLY 5 BY DEFAULT
+        final visibleRecords = showAll
+            ? allRecords
+            : allRecords.take(5).toList();
+
+        // CHART ALWAYS SHOWS LATEST 8
+        final chartRecords = allRecords.take(8).toList();
 
         return ListView(
           padding: const EdgeInsets.all(16),
@@ -312,7 +335,7 @@ class HistoryPage extends StatelessWidget {
             const SizedBox(height: 6),
 
             Text(
-              '${history.length} saved records',
+              '${allRecords.length} saved readings',
               style: const TextStyle(
                 color: Colors.white60,
               ),
@@ -320,7 +343,8 @@ class HistoryPage extends StatelessWidget {
 
             const SizedBox(height: 15),
 
-            temperatureChart(records),
+            // KEEP ORIGINAL TEMPERATURE CHART
+            temperatureChart(chartRecords),
 
             const SizedBox(height: 15),
 
@@ -334,8 +358,51 @@ class HistoryPage extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            for (final record in records)
+            // ORIGINAL READING CARDS
+            for (final record in visibleRecords)
               historyCard(record),
+
+            // SHOW ALL / SHOW LESS BUTTON
+            if (allRecords.length > 5)
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 10,
+                  bottom: 20,
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        showAll = !showAll;
+                      });
+                    },
+                    icon: Icon(
+                      showAll
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                    ),
+                    label: Text(
+                      showAll
+                          ? 'Show Less'
+                          : 'Show All Readings',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.cyan,
+                      side: const BorderSide(
+                        color: Colors.cyan,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         );
       },
