@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class ControlsPage extends StatefulWidget {
   final DatabaseReference database;
@@ -45,12 +46,17 @@ class _ControlsPageState extends State<ControlsPage> {
           ),
         ),
       );
-    } catch (e) {
+    } on FirebaseException catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Command failed: $e'),
+          content: Text(
+            e.code == 'permission-denied'
+                ? 'Permission Denied'
+                : 'Unable to send command',
+          ),
+          behavior: SnackBarBehavior.floating,
         ),
       );
     } finally {
@@ -164,7 +170,7 @@ class _ControlsPageState extends State<ControlsPage> {
               width: 54,
               height: 54,
               decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.12),
+                color: Colors.redAccent.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
