@@ -101,8 +101,7 @@ class SettingsPage extends StatelessWidget {
             title: Text('About Application'),
             subtitle: Text(
               'Smart Laboratory Safety Monitoring System\n'
-                  'Flutter + Firebase + ESP32\n'
-                  'Assessment 3',
+                  'Monitor Laboratory Environment'
             ),
           ),
         ),
